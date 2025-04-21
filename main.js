@@ -12,7 +12,17 @@ const WIN_PATTERNS = [
     [[0,2],[1,2],[2,2]]
 ]
 
-const Gameboard = (function () {
+const CellValue = {
+    EMPTY: " ",
+};
+  
+const GameResult = {
+    WINNER: "winner",
+    TIE: "tie",
+    CONTINUE: "continue",
+};
+
+const Gameboard = function() {
     const rows = 3;
     const columns = 3;
     const board = [];
@@ -33,7 +43,7 @@ const Gameboard = (function () {
     }
 
     function getBoard() {
-        return board;
+        return board.map(row=>row.map(cell=>({getValue:cell.getValue()})));
     }
 
     function printBoard() {
@@ -49,7 +59,10 @@ const Gameboard = (function () {
 
     function resetBoard() {
         board.forEach(row => row.forEach(cell => cell.resetValue()));
-        printBoard();
+    }
+
+    function getCellValue(row, col){
+        return board[row][col].getValue();
     }
 
     return {
@@ -57,10 +70,11 @@ const Gameboard = (function () {
         getBoard,
         printBoard,
         resetBoard,
+        getCellValue
     }
-})();
+};
 
-function Game(playerOneName = "Player One", playerTwoName = "Player Two"){
+function Game(board, playerOneName = "Player One", playerTwoName = "Player Two"){
     const players = [
         {
             name: playerOneName,
@@ -80,34 +94,21 @@ function Game(playerOneName = "Player One", playerTwoName = "Player Two"){
 
     const getActivePlayer = () => activePlayer;
 
-    const printNewRound = (row, col) => {
-        console.log(
-            `Placing ${getActivePlayer().token} on row:${row+1} and column:${col+1}`
-        )
-    };
-
     const checkRound = () => {
-        const board = Gameboard.getBoard();
-        
         const winnerFound = WIN_PATTERNS.find(([a, b, c]) => {
-            const valA = board[a[0]][a[1]].getValue();
-            const valB = board[b[0]][b[1]].getValue();
-            const valC = board[c[0]][c[1]].getValue();
-            return valA !== " " && valA === valB && valB === valC;
+            const valA = board.getCellValue(a[0],a[1]);
+            const valB = board.getCellValue(b[0],b[1]);
+            const valC = board.getCellValue(c[0],c[1]);
+            return valA !== CellValue.EMPTY && valA === valB && valB === valC;
         })
         if (winnerFound) return "winner";
-        const tie = board.flat().filter(cell => cell.getValue() !== " ").length === 9;
+        const tie = board.getBoard().flat().filter(cell => cell.getValue !== " ").length === 9;
         if (tie) return "tie";
         return "continue";
     }
 
     const playRound = (row, col) => {
-        printNewRound(row, col);
-        if (!Gameboard.updateCell(row, col, getActivePlayer().token)) {
-            console.log("Invalid move. Try again.");
-            return "retry";
-        }
-        Gameboard.printBoard();
+        board.updateCell(row, col, getActivePlayer().token);
         const roundResult = checkRound();
         if (roundResult !== "continue") return roundResult;
         switchPlayerTurn();
@@ -115,7 +116,7 @@ function Game(playerOneName = "Player One", playerTwoName = "Player Two"){
     }
 
     const resetGame = () => {
-        Gameboard.resetBoard();
+        board.resetBoard();
     }
 
     return {playRound, getActivePlayer, resetGame}
@@ -140,25 +141,25 @@ function Cell(){
 }
 
 // DOM Controllers
-const boardController = (function(){
+function BoardController(board, game){
     const cells = [...document.querySelectorAll(".cell>button")];
 
-    function initiateBoard(tictactoe){
+    function initiateBoard(){
         cells.forEach(
             (cell) => {
                 cell.addEventListener("click", ()=> {
                     const row = Number(cell.getAttribute("data-row"));
                     const col = Number(cell.getAttribute("data-col"));
-                    const roundResult = tictactoe.playRound(row, col);
-                    const cPlayer = tictactoe.getActivePlayer();
-                    boardController.updateBoard();
+                    const roundResult = game.playRound(row, col);
+                    const cPlayer = game.getActivePlayer();
+                    updateBoard();
                     if (roundResult === "tie"){
                         alert("It's a tie. Good game!");
-                        boardController.disableBoard();
+                        disableBoard();
                     }
                     else if (roundResult === "winner"){
                         alert(`We have a winner! ${cPlayer.name} has won with ${cPlayer.token}!`);
-                        boardController.disableBoard();
+                        disableBoard();
                     }
                     else if (roundResult === "retry"){
                         alert("Space already has a value. Please choose another space.");
@@ -176,11 +177,11 @@ const boardController = (function(){
     }
 
     function updateBoard(){
-        Gameboard.getBoard().forEach(
+        board.getBoard().forEach(
             (row, rowIndex) => row.forEach(
                 (cell, columnIndex) => {
                     const button = document.querySelector(`[data-row="${rowIndex}"][data-col="${columnIndex}"]`)
-                    const value = cell.getValue();
+                    const value = cell.getValue;
                     if (value !== " "){
                         button.textContent = value;
                         button.disabled = true;
@@ -195,11 +196,13 @@ const boardController = (function(){
     }
 
     return {initiateBoard, resetBoard, updateBoard, disableBoard};
-})();
+};
 
 function GameController(player1Name = "Player 1", player2Name = "Player 2"){
-    const tictactoe = Game(player1Name, player2Name);
-    boardController.initiateBoard(tictactoe);
+    const board = Gameboard();
+    const tictactoe = Game(board, player1Name, player2Name);
+    const boardController = BoardController(board, tictactoe);
+    boardController.initiateBoard();
 };
 
 GameController();
