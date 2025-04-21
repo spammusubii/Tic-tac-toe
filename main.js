@@ -12,8 +12,6 @@ const WIN_PATTERNS = [
     [[0,2],[1,2],[2,2]]
 ]
 
-const CELLS = [...document.querySelectorAll(".cell>button")];
-
 const Gameboard = (function () {
     const rows = 3;
     const columns = 3;
@@ -22,7 +20,7 @@ const Gameboard = (function () {
     for (let i = 0; i < rows; i++){
         board[i] = [];
         for (let j = 0; j < columns; j++){
-            board[i][j] = Cell();       
+            board[i][j] = Cell();
         }
     }
 
@@ -62,8 +60,7 @@ const Gameboard = (function () {
     }
 })();
 
-function GameController(playerOneName = "Player One", playerTwoName = "Player Two"){
-
+function Game(playerOneName = "Player One", playerTwoName = "Player Two"){
     const players = [
         {
             name: playerOneName,
@@ -142,80 +139,67 @@ function Cell(){
     return {getValue, setValue, resetValue};
 }
 
-function displayController(){
-    const tictactoe = GameController("player 1", "player 2");
-    CELLS.forEach(
-        (cell) => {
-            cell.addEventListener("click", ()=> {
-                console.log('clicked')
-                let [row, col] = cell.getAttribute("id").split("").map(Number);
-                const roundResult = tictactoe.playRound(row, col);
-                if (roundResult === "tie"){
-                    console.log("It's a tie. Good game!");
-                }
-                else if (roundResult === "winner"){
-                    console.log(`We have a winner! ${cPlayer.name} has won with ${cPlayer.token}!`);
-                }
-                else if (roundResult === "retry"){
-                    console.log("Space already has a value. Please choose another space.");
-                }
-                updateBoard();
-            })
-        }
-    )
+// DOM Controllers
+const boardController = (function(){
+    const cells = [...document.querySelectorAll(".cell>button")];
 
-    
-    // while (round <= 9){
-    //     const cPlayer = tictactoe.getActivePlayer();
-    //     let input = prompt(`${cPlayer.name}, enter row,col (e.g., 0,2):`);
-    //     let [row, col] = input?.replaceAll(" ", "").split(",").map(Number);
-
-    //     if (
-    //         isNaN(row) || isNaN(col) ||
-    //         row < 0 || row > 2 ||
-    //         col < 0 || col > 2
-    //     ) {
-    //         console.log("Invalid input. Please enter values between 0 and 2.");
-    //         continue;
-    //     }
-    //     row = Number(row)
-    //     col = Number(col);
-    //     const roundResult = tictactoe.playRound(row, col);
-    //     if (roundResult === "tie"){
-    //         console.log("It's a tie. Good game!");
-    //         break;
-    //     }
-    //     else if (roundResult === "winner"){
-    //         console.log(`We have a winner! ${cPlayer.name} has won with ${cPlayer.token}!`);
-    //         break;
-    //     }
-    //     else if (roundResult === "retry"){
-    //         console.log("Space already has a value. Please choose another space.");
-    //         continue;
-    //     }
-    //     round++;
-    // }
-    // tictactoe.resetGame();
-}
-
-// DOM
-function resetBoard(){
-    CELLS.forEach(cell=>cell.textContent="");
-}
-
-function updateBoard(){
-    Gameboard.getBoard().forEach(
-        (row, rowIndex) => row.forEach(
-            (cell, columnIndex) => {
-                const button = document.getElementById(`${rowIndex}${columnIndex}`);
-                const value = cell.getValue();
-                if (value !== " "){
-                    button.textContent = value;
-                    button.disabled = true;
-                }
+    function initiateBoard(tictactoe){
+        cells.forEach(
+            (cell) => {
+                cell.addEventListener("click", ()=> {
+                    const row = Number(cell.getAttribute("data-row"));
+                    const col = Number(cell.getAttribute("data-col"));
+                    const roundResult = tictactoe.playRound(row, col);
+                    const cPlayer = tictactoe.getActivePlayer();
+                    boardController.updateBoard();
+                    if (roundResult === "tie"){
+                        alert("It's a tie. Good game!");
+                        boardController.disableBoard();
+                    }
+                    else if (roundResult === "winner"){
+                        alert(`We have a winner! ${cPlayer.name} has won with ${cPlayer.token}!`);
+                        boardController.disableBoard();
+                    }
+                    else if (roundResult === "retry"){
+                        alert("Space already has a value. Please choose another space.");
+                    }
+                })
             }
         )
-    )
-}
+    }
 
-displayController();
+    function resetBoard(){
+        cells.forEach(cell=>{
+            cell.textContent=""
+            cell.disabled=false;
+        });
+    }
+
+    function updateBoard(){
+        Gameboard.getBoard().forEach(
+            (row, rowIndex) => row.forEach(
+                (cell, columnIndex) => {
+                    const button = document.querySelector(`[data-row="${rowIndex}"][data-col="${columnIndex}"]`)
+                    const value = cell.getValue();
+                    if (value !== " "){
+                        button.textContent = value;
+                        button.disabled = true;
+                    }
+                }
+            )
+        )
+    }
+
+    function disableBoard(){
+        cells.forEach(cell=>cell.disabled = true);
+    }
+
+    return {initiateBoard, resetBoard, updateBoard, disableBoard};
+})();
+
+function GameController(player1Name = "Player 1", player2Name = "Player 2"){
+    const tictactoe = Game(player1Name, player2Name);
+    boardController.initiateBoard(tictactoe);
+};
+
+GameController();
