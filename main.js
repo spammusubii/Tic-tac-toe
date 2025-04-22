@@ -53,7 +53,6 @@ const Gameboard = function() {
                 if (j > 0) boardLine += " | ";
                 boardLine += board[i][j].getValue();
             }
-            console.log(boardLine);
         }
     }
 
@@ -117,6 +116,7 @@ function Game(board, playerOneName = "Player One", playerTwoName = "Player Two")
 
     const resetGame = () => {
         board.resetBoard();
+        activePlayer = players[0];
     }
 
     return {playRound, getActivePlayer, resetGame}
@@ -156,7 +156,6 @@ function BoardController(board, game, info){
                     const row = Number(cell.getAttribute("data-row"));
                     const col = Number(cell.getAttribute("data-col"));
                     const roundResult = game.playRound(row, col);
-                    const cPlayer = game.getActivePlayer();
                     updateBoard();
                     info.changeActivePlayer();
                     info.setActivePlayer();
@@ -208,8 +207,11 @@ function BoardController(board, game, info){
 };
 
 function GameController(){
+    const resetButton = document.querySelector(".reset-container > button");
+
     const player1Name = prompt("What is player 1's name?");
     const player2Name = prompt("What is player 2's name?");
+
     const board = Gameboard();
     const tictactoe = Game(board, player1Name, player2Name);
     const infoController = InformationController();
@@ -217,6 +219,12 @@ function GameController(){
     infoController.setActivePlayer();
     const boardController = BoardController(board, tictactoe, infoController);
     boardController.initiateBoard();
+
+    resetButton.addEventListener("click", (e) => {
+        tictactoe.resetGame();
+        boardController.resetBoard();
+        infoController.resetInfo();
+    })
 };
 
 function InformationController(){
@@ -234,6 +242,10 @@ function InformationController(){
         resultDiv.textContent = `Game Finished: ${result === "Tie" ? "Tie!" : result + " is the winner!"}`;
     }
 
+    function resetResult(){
+        resultDiv.textContent = "";
+    }
+
     function setActivePlayer(){
         currentActivePlayer.classList.toggle("active");
     }
@@ -243,11 +255,24 @@ function InformationController(){
         currentActivePlayer = currentActivePlayer === player1span ? player2span : player1span;
     }
 
+    function resetActivePlayer(){
+        player1span.classList.remove("active");
+        player2span.classList.remove("active");
+        currentActivePlayer = player1span;
+        setActivePlayer();
+    }
+
+    function resetInfo(){
+        resetResult();
+        resetActivePlayer();
+    }
+
     return {
         setNameOfPlayers,
         setResult,
         setActivePlayer,
-        changeActivePlayer
+        changeActivePlayer,
+        resetInfo
     }
 }
 

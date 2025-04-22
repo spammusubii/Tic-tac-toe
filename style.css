@@ -115,3 +115,16 @@ footer > p {
     text-align: center;
     padding: 5px;
 }
+
+.reset-container > button {
+    font-size: 1.4rem;
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.5s;
+    cursor: pointer;
+}
+
+.reset-container > button:hover {
+    color: red;
+    font-size: 1.5rem;
+}
