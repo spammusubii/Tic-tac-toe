@@ -141,8 +141,13 @@ function Cell(){
 }
 
 // DOM Controllers
-function BoardController(board, game){
+function BoardController(board, game, info){
     const cells = [...document.querySelectorAll(".cell>button")];
+    const GAME_RESULTS = {
+        TIE: "TIE",
+        PLAYER1: "Player 1",
+        PLAYER2: "Player 2"
+    }
 
     function initiateBoard(){
         cells.forEach(
@@ -153,12 +158,16 @@ function BoardController(board, game){
                     const roundResult = game.playRound(row, col);
                     const cPlayer = game.getActivePlayer();
                     updateBoard();
+                    info.changeActivePlayer();
+                    info.setActivePlayer();
                     if (roundResult === "tie"){
-                        alert("It's a tie. Good game!");
+                        info.setResult("Tie")
                         disableBoard();
                     }
                     else if (roundResult === "winner"){
-                        alert(`We have a winner! ${cPlayer.name} has won with ${cPlayer.token}!`);
+                        info.setResult(game.getActivePlayer().name);
+                        info.changeActivePlayer();
+                        info.setActivePlayer();
                         disableBoard();
                     }
                     else if (roundResult === "retry"){
@@ -198,11 +207,48 @@ function BoardController(board, game){
     return {initiateBoard, resetBoard, updateBoard, disableBoard};
 };
 
-function GameController(player1Name = "Player 1", player2Name = "Player 2"){
+function GameController(){
+    const player1Name = prompt("What is player 1's name?");
+    const player2Name = prompt("What is player 2's name?");
     const board = Gameboard();
     const tictactoe = Game(board, player1Name, player2Name);
-    const boardController = BoardController(board, tictactoe);
+    const infoController = InformationController();
+    infoController.setNameOfPlayers(player1Name, player2Name)
+    infoController.setActivePlayer();
+    const boardController = BoardController(board, tictactoe, infoController);
     boardController.initiateBoard();
 };
+
+function InformationController(){
+    const player1span = document.querySelector(".player1");
+    const player2span = document.querySelector(".player2");
+    const resultDiv = document.querySelector(".result-container")
+    let currentActivePlayer = player1span;
+
+    function setNameOfPlayers(player1Name = "Player 1", player2Name = "Player 2"){
+        player1span.textContent = player1Name || "Player 1";
+        player2span.textContent = player2Name || "Player 2";
+    }
+
+    function setResult(result){
+        resultDiv.textContent = `Game Finished: ${result === "Tie" ? "Tie!" : result + " is the winner!"}`;
+    }
+
+    function setActivePlayer(){
+        currentActivePlayer.classList.toggle("active");
+    }
+
+    function changeActivePlayer(){
+        currentActivePlayer.classList.toggle("active");
+        currentActivePlayer = currentActivePlayer === player1span ? player2span : player1span;
+    }
+
+    return {
+        setNameOfPlayers,
+        setResult,
+        setActivePlayer,
+        changeActivePlayer
+    }
+}
 
 GameController();

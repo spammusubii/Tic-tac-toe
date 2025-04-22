@@ -6,6 +6,7 @@
 
 html, body {
     height: 100vh;
+    font-size: 16px;
 }
 
 .main-container {
@@ -14,16 +15,54 @@ html, body {
     height: 100%;
 }
 
+header {
+    padding-top: 20px;
+    background-color: lightpink;
+    box-shadow: 0 0 5px 12px white;
+    margin-bottom: 6px;;
+}
+
 header > h1 {
     text-align: center;
+    font-size: 3rem;
+    color: white;
 }
 
 .game-container {
+    background-color: skyblue;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    gap: 20px;
+    padding-top: 50px;
+}
+
+.board-container {
     display: grid;
     grid-template-rows: repeat(3, 100px);
     justify-items: center;
     align-items: center;
-    align-content: center;
+    align-content: start;
+    box-shadow: 0 0 12px 7px lightpink;
+}
+
+.name-container {
+    display: flex;
+    gap: 30px;
+}
+
+.name-container > span {
+    border: 1px solid black;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 1.5rem;
+    background-color: white;
+    transition: all 0.5s;
+}
+
+.active {
+    box-shadow: 0 0 12px 6px white;
 }
 
 .row {
@@ -47,7 +86,31 @@ header > h1 {
 }
 
 .cell > button:disabled {
-    background-color: initial;
+    background-color: lightgray;
     color: initial;
     border-color: initial;
+}
+
+.information-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding-bottom: 10px;
+    font-size: 2rem;
+}
+
+.result-container {
+    text-align: center;
+    color: white;
+}
+
+footer {
+    padding: 12px;
+    background-color: black;
+    color: white;
+}
+
+footer > p {
+    text-align: center;
 }
